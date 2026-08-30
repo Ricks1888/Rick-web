@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ricardo Avila — Música</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F0E6;
+    --panel:#FFFFFF;
+    --ink:#16140F;
+    --muted:#8A8375;
+    --hairline:#E4DCC8;
+    --green:#16140F;
+    --green-light:#c0b490;
+    --blue:#b85e00;
+    --blue-light:#f59994;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    font-weight:300;
+    overflow-x:hidden;
+    position:relative;
+  }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* ---------- WATERCOLOR WASH BACKGROUND ---------- */
+  /* Fondo de acuarela desactivado por ahora */
+  .wash{ display:none; }
+  .topbar, .listen{ position:relative; z-index:1; }
+
+  /* ---------- TOP BAR ---------- */
+  .topbar{
+    position:relative;
+    z-index:5;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1rem 1.6rem;
+    background:var(--green);
+    margin-bottom:1.6rem;
+  }
+  .brand{ display:flex; align-items:center; gap:0.9rem; }
+  .sphere-mark{ position:relative; width:110px; height:110px; flex-shrink:0; }
+  #sphere-canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .wordmark{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.7rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--green-light);
+  }
+  .wordmark span{ color:var(--bg); }
+
+  .lang-toggle{
+    display:flex;
+    gap:0.4rem;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.08em;
+  }
+  .lang-toggle button{
+    background:none;
+    border:none;
+    color:var(--green-light);
+    cursor:pointer;
+    padding:0.3rem 0.5rem;
+    text-transform:uppercase;
+    border-bottom:1px solid transparent;
+  }
+  .lang-toggle button.active{ color:var(--bg); border-bottom-color:var(--blue-light); }
+
+  /* ---------- LISTEN PAGE ---------- */
+  .listen{ max-width:920px; margin:0 auto; padding:1.8rem 1.4rem 3.5rem; }
+  .listen-head{ text-align:center; margin-bottom:2rem; }
+  .listen-head .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.64rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 0.4rem;
+  }
+  .listen-head h1{
+    font-weight:400;
+    font-size:clamp(1.2rem, 2.6vw, 1.5rem);
+    margin:0;
+    letter-spacing:0.01em;
+  }
+
+  .category{ margin-bottom:2.4rem; }
+  .category-title{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.66rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--green);
+    margin:0 0 0.9rem;
+    padding-bottom:0.5rem;
+    border-bottom:1px solid var(--hairline);
+  }
+  .category.electronic .category-title{ color:var(--blue); }
+
+  .tracks-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:0.7rem;
+  }
+  @media (max-width:640px){ .tracks-grid{ grid-template-columns:1fr; } }
+
+  .track-card{
+    border:1px solid var(--hairline);
+    border-radius:8px;
+    background:var(--panel);
+    padding:0.85rem 0.95rem 0.75rem;
+    display:flex;
+    flex-direction:column;
+    gap:0.45rem;
+  }
+  .track-card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:0.6rem; }
+  .track-title{ font-size:0.88rem; font-weight:400; margin:0; line-height:1.3; }
+  .track-meta{ font-family:'JetBrains Mono', monospace; font-size:0.6rem; color:var(--muted); line-height:1.5; margin-top:0.15rem; }
+
+  .track-row{ display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; }
+  .play-btn{
+    width:26px; height:26px;
+    border-radius:50%;
+    border:1px solid var(--hairline);
+    background:transparent;
+    color:var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+    transition:border-color .2s ease, color .2s ease;
+  }
+  .play-btn:hover{ border-color:var(--green); color:var(--green); }
+  .play-btn svg{ width:8px; height:10px; }
+
+  .mini-wave{ display:flex; align-items:flex-end; gap:1.5px; height:20px; flex:1; }
+  .mini-wave .bar{
+    flex:1;
+    background:var(--hairline);
+    border-radius:1px;
+    transition:background .2s ease, opacity .2s ease;
+    transform-origin:bottom;
+  }
+  .mini-wave .bar.played{ background:var(--green); }
+  .track-card.electronic .mini-wave .bar.played{ background:var(--blue); }
+  .mini-wave.animating .bar{
+    animation:eqPulse 1s ease-in-out infinite;
+    animation-delay:var(--d, 0s);
+  }
+  @keyframes eqPulse{
+    0%, 100%{ transform:scaleY(1); }
+    50%{ transform:scaleY(1.7); }
+  }
+
+  .time-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.58rem;
+    color:var(--muted);
+    white-space:nowrap;
+    min-width:64px;
+    text-align:right;
+  }
+
+  .volume-control{
+    display:flex;
+    align-items:center;
+    gap:0.3rem;
+    flex-shrink:0;
+  }
+  .volume-control svg{ width:11px; height:11px; color:var(--muted); flex-shrink:0; }
+  .volume-control input[type="range"]{
+    -webkit-appearance:none;
+    appearance:none;
+    width:46px;
+    height:2px;
+    background:var(--hairline);
+    border-radius:2px;
+    outline:none;
+    cursor:pointer;
+  }
+  .volume-control input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    appearance:none;
+    width:9px; height:9px;
+    border-radius:50%;
+    background:var(--ink);
+    cursor:pointer;
+  }
+  .volume-control input[type="range"]::-moz-range-thumb{
+    width:9px; height:9px;
+    border:none;
+    border-radius:50%;
+    background:var(--ink);
+    cursor:pointer;
+  }
+
+  .track-card.no-audio{ opacity:0.7; }
+  .no-audio-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.58rem;
+    color:var(--muted);
+    font-style:italic;
+    margin:0;
+  }
+  .play-btn:disabled{ cursor:not-allowed; opacity:0.4; }
+
+  .video-toggle{
+    display:inline-flex;
+    align-items:center;
+    gap:0.3rem;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.6rem;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:#fff;
+    background:var(--blue);
+    border:none;
+    border-radius:20px;
+    padding:0.28rem 0.6rem;
+    cursor:pointer;
+    flex-shrink:0;
+    white-space:nowrap;
+  }
+  .track-card:not(.electronic) .video-toggle{ background:var(--green); }
+  .video-toggle:hover{ opacity:0.85; }
+  .video-toggle svg{ width:9px; height:9px; }
+
+  .video-panel{
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    transition:max-height .4s ease, opacity .3s ease, margin .4s ease;
+  }
+  .track-card.video-open .video-panel{
+    max-height:260px;
+    opacity:1;
+    margin-top:0.7rem;
+  }
+  .video-panel video{
+    width:100%;
+    border-radius:6px;
+    display:block;
+    background:#000;
+  }
+  .video-placeholder{
+    border:1px dashed var(--hairline);
+    border-radius:6px;
+    padding:1.2rem;
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.62rem;
+    color:var(--muted);
+  }
+
+  @media (prefers-reduced-motion: reduce){ #sphere-canvas{ opacity:0.4; } }
+</style>
+</head>
+<body>
+
+<div class="wash"></div>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="sphere-mark"><canvas id="sphere-canvas"></canvas></div>
+    <span class="wordmark"><span>Ricardo Avila</span> — <span data-i18n="role">compositor</span></span>
+  </div>
+  <div class="lang-toggle">
+    <button id="btnFr" data-lang="fr">FR</button>
+    <button id="btnEs" class="active" data-lang="es">ES</button>
+  </div>
+</div>
+
+<div class="listen">
+  <div class="listen-head">
+    <p class="eyebrow" data-i18n="eyebrow">— Escuchar —</p>
+    <h1 data-i18n="heading">Obras</h1>
+  </div>
+
+  <div class="category">
+    <p class="category-title" data-i18n="catInstrumental">Instrumental y mixta</p>
+    <div class="tracks-grid" id="gridInstrumental"></div>
+  </div>
+
+  <div class="category electronic">
+    <p class="category-title" data-i18n="catElectronic">Música electrónica</p>
+    <div class="tracks-grid" id="gridElectronic"></div>
+  </div>
+</div>
+
+<!-- Audio real se conecta por pieza más adelante, ej: data-src="URL_DEL_BUCKET/altzl.mp3" -->
+
+<script>
+  // ---------- i18n ----------
+  const i18n = {
+    es: { role:'compositor', eyebrow:'— Escuchar —', heading:'Obras', catInstrumental:'Instrumental y mixta', catElectronic:'Música electrónica' },
+    fr: { role:'compositeur', eyebrow:'— Écouter —', heading:'Œuvres', catInstrumental:'Instrumentale et mixte', catElectronic:'Musique électronique' }
+  };
+
+  const tracks = [
+    { category:'instrumental', title:"Altz'l", year:2017, performer:null,
+      instr:{ es:'flautas prehispánicas y electrónica', fr:'flûtes préhispaniques et électronique' },
+      audio:"https://pub-03e099645e88465e84347fcb57894531.r2.dev/Altz'l%20(pour%20flutes%20prehispaniques%20et%20electronique).wav", hasVideo:true, video:"https://pub-fdabd7b410f04388bb00bf8911d13d71.r2.dev/Altzl%20VID.mp4" },
+    { category:'instrumental', title:'Cette ville de cendre', year:2025, performer:"L'Instant Donné",
+      instr:{ es:'piano, violín y violonchelo', fr:'piano, violon et violoncelle' },
+      audio:"https://pub-03e099645e88465e84347fcb57894531.r2.dev/Cette%20ville%20de%20cendre%20AUDIO.wav", hasVideo:true, video:"https://pub-fdabd7b410f04388bb00bf8911d13d71.r2.dev/Cette%20Ville%20De%20Cendre%20Vidcomp.mp4" },
+    { category:'instrumental', title:'Komanali 01', year:2017, performer:"L'Instant Donné",
+      instr:{ es:'violonchelo solo', fr:'violoncelle solo' },
+      audio:"https://pub-03e099645e88465e84347fcb57894531.r2.dev/Ricardo%20Avila-%20Komanali01.mp3" },
+    { category:'instrumental', title:'Tlaehēca', year:2025, performer:'Ensemble Les Possibles',
+      instr:{ es:'flauta, clarinete, acordeón, violín, violonchelo y percusión', fr:'flûte, clarinette, accordéon, violon, violoncelle et percussion' },
+      audio:"https://pub-03e099645e88465e84347fcb57894531.r2.dev/Tlaeh%C4%93ca%20-%20Ricardo%20Avila.wav", hasVideo:true, video:"https://pub-fdabd7b410f04388bb00bf8911d13d71.r2.dev/Tlaeh%C4%93ca%20-Vidcomp.mp4" },
+    { category:'instrumental', title:"L'appel du néant", year:2024, performer:"L'Instant Donné",
+      instr:{ es:'clarinete, piano y violonchelo', fr:'clarinette, piano et violoncelle' },
+      audio:"https://pub-03e099645e88465e84347fcb57894531.r2.dev/L'appel%20du%20n%C3%A9ant%20-%20Ricardo%20Avila.wav", hasVideo:true, video:"https://pub-fdabd7b410f04388bb00bf8911d13d71.r2.dev/L'appel%20Du%20N%C3%A9antvidcomp.mp4" },
+    { category:'instrumental', title:'Battements intérieurs', year:2024, performer:'Ensemble Les Possibles',
+      instr:{ es:'flauta, clarinete, violín, violonchelo y percusión', fr:'flûte, clarinette, violon, violoncelle et percussion' },
+      audio:"https://pub-03e099645e88465e84347fcb57894531.r2.dev/Battements%20int%C3%A9rieurs.wav", hasVideo:true, video:"https://pub-fdabd7b410f04388bb00bf8911d13d71.r2.dev/Battements%20Int%C3%A9rieursvidcomp.mp4" },
+    { category:'electronic', title:'Declaración de odio', year:null, performer:null,
+      instr:{ es:'basado en el poema de Efraín Huerta', fr:"d'après le poème d'Efraín Huerta" },
+      audio:"https://pub-03e099645e88465e84347fcb57894531.r2.dev/Declaracion%20de%20Odio%20Ricardo%20AVILA.wav" },
+    { category:'electronic', title:'Hablando del rave', year:null, performer:null,
+      instr:{ es:'improvisación en sistema modular', fr:'improvisation sur système modulaire' },
+      audio:"https://pub-03e099645e88465e84347fcb57894531.r2.dev/Tipo%20hablando%20del%20rave.mp3" },
+    { category:'electronic', title:'Impro88', year:null, performer:null,
+      instr:{ es:'improvisación en sistema modular', fr:'improvisation sur système modulaire' },
+      audio:"https://pub-03e099645e88465e84347fcb57894531.r2.dev/Es-9%20i%20mpro%202%20(morpha).mp3" }
+  ];
+
+  let currentLang = 'es';
+  let sharedAudio = new Audio();
+  let currentVolume = 0.85;
+  sharedAudio.volume = currentVolume;
+  let activeCard = null;
+  let activeBars = null;
+  let activeWave = null;
+  let activeTimeLabel = null;
+
+  function metaLine(t){
+    const parts = [t.instr[currentLang]];
+    if(t.year) parts.push(String(t.year));
+    if(t.performer) parts.push(t.performer);
+    return parts.join(' — ');
+  }
+
+  function fmtTime(s){
+    if(!isFinite(s) || s < 0) s = 0;
+    const m = Math.floor(s/60);
+    const sec = Math.floor(s%60);
+    return m+':'+String(sec).padStart(2,'0');
+  }
+
+  function stopActive(){
+    if(activeCard){
+      activeCard.classList.remove('playing');
+      activeCard.querySelector('.playIcon').style.display = 'block';
+      activeCard.querySelector('.pauseIcon').style.display = 'none';
+      if(activeWave) activeWave.classList.remove('animating');
+      if(activeTimeLabel) activeTimeLabel.textContent = fmtTime(0)+' / '+fmtTime(sharedAudio.duration||0);
+    }
+    activeCard = null;
+    activeBars = null;
+    activeWave = null;
+    activeTimeLabel = null;
+  }
+
+  sharedAudio.addEventListener('timeupdate', ()=>{
+    if(!activeBars || !sharedAudio.duration) return;
+    const frac = sharedAudio.currentTime / sharedAudio.duration;
+    const litCount = Math.floor(frac * activeBars.length);
+    activeBars.forEach((b,i)=> b.classList.toggle('played', i < litCount));
+    if(activeTimeLabel) activeTimeLabel.textContent = fmtTime(sharedAudio.currentTime)+' / '+fmtTime(sharedAudio.duration);
+  });
+  sharedAudio.addEventListener('loadedmetadata', ()=>{
+    if(activeTimeLabel) activeTimeLabel.textContent = fmtTime(0)+' / '+fmtTime(sharedAudio.duration);
+  });
+  sharedAudio.addEventListener('ended', stopActive);
+
+  function renderTracks(){
+    const gridI = document.getElementById('gridInstrumental');
+    const gridE = document.getElementById('gridElectronic');
+    gridI.innerHTML = '';
+    gridE.innerHTML = '';
+    tracks.forEach((t)=>{
+      const card = document.createElement('div');
+      card.className = 'track-card' + (t.category==='electronic' ? ' electronic' : '') + (t.audio ? '' : ' no-audio');
+      card.innerHTML = `
+        <div class="track-card-head">
+          <h3 class="track-title">${t.title}</h3>
+          ${t.hasVideo ? `<button class="video-toggle" type="button">
+            <svg viewBox="0 0 12 12" fill="currentColor"><polygon points="2,1 11,6 2,11"/></svg>
+            <span data-vlabel>${currentLang==='fr' ? 'Vidéo' : 'Video'}</span>
+          </button>` : ''}
+        </div>
+        <p class="track-meta">${metaLine(t)}</p>
+        <div class="track-row">
+          <button class="play-btn" aria-label="Reproducir" ${t.audio ? '' : 'disabled'}>
+            <svg class="playIcon" viewBox="0 0 12 14" fill="currentColor"><polygon points="0,0 12,7 0,14"/></svg>
+            <svg class="pauseIcon" viewBox="0 0 12 14" fill="currentColor" style="display:none"><rect x="0" y="0" width="4" height="14"/><rect x="8" y="0" width="4" height="14"/></svg>
+          </button>
+          <div class="mini-wave"></div>
+          <span class="time-label mono">0:00 / 0:00</span>
+          <div class="volume-control">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2 L4 5.5 H1 v5 h3 L8 14 Z"/><path d="M10.5 5.5c1.2 1 1.2 4 0 5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+            <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="${currentVolume}" ${t.audio ? '' : 'disabled'} aria-label="Volumen">
+          </div>
+        </div>
+        ${t.audio ? '' : `<p class="no-audio-label">${currentLang==='fr' ? 'audio bientôt disponible' : 'audio próximamente'}</p>`}
+        ${t.hasVideo ? `<div class="video-panel">
+          ${t.video ? `<video controls src="${t.video}"></video>` : `<div class="video-placeholder">${currentLang==='fr' ? 'vidéo bientôt disponible' : 'video próximamente — se conecta aquí'}</div>`}
+        </div>` : ''}
+      `;
+      const bars = [];
+      const wave = card.querySelector('.mini-wave');
+      for(let i=0;i<28;i++){
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.height = (4 + Math.random()*16*(0.4+0.6*Math.sin(i*0.4))) + 'px';
+        bar.style.setProperty('--d', (Math.random()*0.9).toFixed(2)+'s');
+        wave.appendChild(bar);
+        bars.push(bar);
+      }
+      const timeLabel = card.querySelector('.time-label');
+      wave.addEventListener('click', (e)=>{
+        if(!t.audio || activeCard!==card || !sharedAudio.duration) return;
+        const rect = wave.getBoundingClientRect();
+        const frac = (e.clientX - rect.left) / rect.width;
+        sharedAudio.currentTime = frac * sharedAudio.duration;
+      });
+      const volSlider = card.querySelector('.volume-slider');
+      volSlider.addEventListener('input', (e)=>{
+        currentVolume = parseFloat(e.target.value);
+        sharedAudio.volume = currentVolume;
+        document.querySelectorAll('.volume-slider').forEach(s=>{ if(s!==e.target) s.value = currentVolume; });
+      });
+      if(t.hasVideo){
+        const videoBtn = card.querySelector('.video-toggle');
+        videoBtn.addEventListener('click', ()=>{
+          card.classList.toggle('video-open');
+        });
+      }
+      const btn = card.querySelector('.play-btn');
+      if(t.audio){
+        btn.addEventListener('click', ()=>{
+          const wasActive = activeCard === card;
+          if(activeCard && activeCard !== card) stopActive();
+          if(wasActive && !sharedAudio.paused){
+            sharedAudio.pause();
+            card.classList.remove('playing');
+            card.querySelector('.playIcon').style.display = 'block';
+            card.querySelector('.pauseIcon').style.display = 'none';
+            wave.classList.remove('animating');
+          } else {
+            if(!wasActive){
+              sharedAudio.src = t.audio;
+              sharedAudio.volume = currentVolume;
+              bars.forEach(b=>b.classList.remove('played'));
+              timeLabel.textContent = '0:00 / 0:00';
+            }
+            sharedAudio.play();
+            card.classList.add('playing');
+            card.querySelector('.playIcon').style.display = 'none';
+            card.querySelector('.pauseIcon').style.display = 'block';
+            wave.classList.add('animating');
+            activeCard = card;
+            activeBars = bars;
+            activeWave = wave;
+            activeTimeLabel = timeLabel;
+          }
+        });
+      }
+      (t.category==='electronic' ? gridE : gridI).appendChild(card);
+    });
+  }
+
+  function setLang(lang){
+    currentLang = lang;
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+      const key = el.getAttribute('data-i18n');
+      if(i18n[lang][key]) el.textContent = i18n[lang][key];
+    });
+    document.getElementById('btnFr').classList.toggle('active', lang==='fr');
+    document.getElementById('btnEs').classList.toggle('active', lang==='es');
+    renderTracks();
+  }
+  document.getElementById('btnFr').addEventListener('click', ()=>setLang('fr'));
+  document.getElementById('btnEs').addEventListener('click', ()=>setLang('es'));
+  renderTracks();
+
+  // ---------- 3D wireframe sphere (small top-left logo mark) ----------
+  const canvas = document.getElementById('sphere-canvas');
+  const ctx = canvas.getContext('2d');
+  const wrap = canvas.parentElement;
+  let W, H, DPR;
+
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = wrap.clientWidth;
+    H = wrap.clientHeight;
+    canvas.width = W*DPR;
+    canvas.height = H*DPR;
+    canvas.style.width = W+'px';
+    canvas.style.height = H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const latSteps = 12, lonSteps = 18;
+  const points = [];
+  for(let i=0; i<=latSteps; i++){
+    const theta = (i/latSteps) * Math.PI;
+    const row = [];
+    for(let j=0; j<=lonSteps; j++){
+      const phi = (j/lonSteps) * Math.PI*2;
+      row.push({ x: Math.sin(theta)*Math.cos(phi), y: Math.cos(theta), z: Math.sin(theta)*Math.sin(phi) });
+    }
+    points.push(row);
+  }
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cycle = 7;
+
+  function waveEnvelope(t){
+    const phase = (t % cycle) / cycle;
+    if(phase < 0.2) return 0;
+    if(phase < 0.3) return (phase-0.2)/0.1;
+    if(phase < 0.75) return 1;
+    if(phase < 0.85) return 1-(phase-0.75)/0.1;
+    return 0;
+  }
+  function noise3(x,y,z,t){ return Math.sin(x*2.6+t)*Math.cos(y*2.1-t*1.8) + Math.sin(z*2.9+t*2.6)*0.6; }
+  function rotateY(p, a){ const c=Math.cos(a), s=Math.sin(a); return { x:p.x*c+p.z*s, y:p.y, z:-p.x*s+p.z*c }; }
+  function rotateX(p, a){ const c=Math.cos(a), s=Math.sin(a); return { x:p.x, y:p.y*c-p.z*s, z:p.y*s+p.z*c }; }
+
+  let rotY = 0, rotX = 0.35;
+  const start = performance.now();
+
+  function frame(){
+    const t = (performance.now()-start)/1000;
+    const env = reduceMotion ? 0 : waveEnvelope(t);
+    rotY += 0.006;
+    rotX = 0.35 + Math.sin(t*0.2)*0.06;
+
+    ctx.clearRect(0,0,W,H);
+    const cx = W/2, cy = H/2;
+    const radius = Math.min(W,H)*0.42;
+    const focal = 2.6;
+
+    const proj = points.map(row => row.map(p=>{
+      const n = noise3(p.x*3, p.y*3, p.z*3, t*1.8);
+      const disp = 1 + n*0.16*env;
+      let rp = rotateY(p, rotY);
+      rp = rotateX(rp, rotX);
+      const scale = focal/(focal + rp.z*1.3 + 1.3);
+      return { x: cx + rp.x*disp*radius*scale, y: cy + rp.y*disp*radius*scale, depth: rp.z };
+    }));
+
+    function strokeLine(a,b){
+      const avgDepth = (a.depth+b.depth)/2;
+      const front = (1 - avgDepth) / 2;
+      const alpha = 0.25 + front*0.55;
+      const mixGreen = front > 0.5;
+      ctx.strokeStyle = mixGreen ? `rgba(192,180,144,${alpha})` : `rgba(245,153,148,${alpha})`;
+      ctx.lineWidth = 0.7;
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.lineTo(b.x,b.y);
+      ctx.stroke();
+    }
+    for(let j=0; j<=lonSteps; j++){ for(let i=0; i<latSteps; i++){ strokeLine(proj[i][j], proj[i+1][j]); } }
+    for(let i=0; i<=latSteps; i++){ for(let j=0; j<lonSteps; j++){ strokeLine(proj[i][j], proj[i][j+1]); } }
+
+    requestAnimationFrame(frame);
+  }
+  frame();
+</script>
+
+</body>
+</html>
