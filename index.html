@@ -344,6 +344,7 @@
   let activeBars = null;
   let activeWave = null;
   let activeTimeLabel = null;
+  let activeVideoEl = null;
 
   function metaLine(t){
     const parts = [t.instr[currentLang]];
@@ -367,6 +368,7 @@
       if(activeWave) activeWave.classList.remove('animating');
       if(activeTimeLabel) activeTimeLabel.textContent = fmtTime(0)+' / '+fmtTime(sharedAudio.duration||0);
     }
+    if(!sharedAudio.paused) sharedAudio.pause();
     activeCard = null;
     activeBars = null;
     activeWave = null;
@@ -447,12 +449,21 @@
         videoBtn.addEventListener('click', ()=>{
           card.classList.toggle('video-open');
         });
+        if(t.video){
+          const videoEl = card.querySelector('.video-panel video');
+          videoEl.addEventListener('play', ()=>{
+            if(activeVideoEl && activeVideoEl !== videoEl) activeVideoEl.pause();
+            activeVideoEl = videoEl;
+            stopActive();
+          });
+        }
       }
       const btn = card.querySelector('.play-btn');
       if(t.audio){
         btn.addEventListener('click', ()=>{
           const wasActive = activeCard === card;
           if(activeCard && activeCard !== card) stopActive();
+          if(activeVideoEl && !activeVideoEl.paused) activeVideoEl.pause();
           if(wasActive && !sharedAudio.paused){
             sharedAudio.pause();
             card.classList.remove('playing');
